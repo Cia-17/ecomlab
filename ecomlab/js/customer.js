@@ -33,6 +33,13 @@ function registerCustomer() {
 		return;
 	}
 
+	// Password strength check
+	var passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_\-]).{8,}$/;
+	if (!passRegex.test(pass)) {
+		messageEl.textContent = "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character.";
+		return;
+	}
+
 	// FormData automatically collects every input's name="" and value
 	// from the form, so we don't have to build the request body by hand.
 	var formData = new FormData(document.getElementById("registerForm"));

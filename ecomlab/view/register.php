@@ -64,7 +64,8 @@
 			-->
 			<button type="button" onclick="registerCustomer()">Register</button>
 		</div>
-	</form>
+	</form> <br>
+
 
 	<!-- Validation/success/error messages get written into here by customer.js -->
 	<p id="formMessage"></p>

@@ -33,6 +33,15 @@ if ($name === '' || $email === '' || $pass === '' || $country === '' || $city ==
     exit;
 }
 
+$passRegex = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_\-]).{8,}$/';
+if (!preg_match($passRegex, $pass)) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character."
+    ]);
+    exit;
+}
+
 // Never store plain-text passwords. password_hash() turns the password
 // into a secure, one-way hash before it ever reaches the database.
 $hashedPass = password_hash($pass, PASSWORD_DEFAULT);
