@@ -1,7 +1,7 @@
 <?php
 
 // Pull in the connection settings (DATABASE, SERVER, USERNAME, PASSWD constants)
-require_once "db_cred.php";
+require_once __DIR__ . "/db_cred.php";
 
 // Database is the base class every "model" class (like Customer) should extend.
 // It knows how to connect to MySQL and how to run queries safely (using

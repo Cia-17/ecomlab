@@ -5,7 +5,7 @@
 // that a form submission uses. It's used directly by PHP running on the
 // server (not called from JavaScript), so it can just return PHP data
 // instead of echoing JSON.
-require_once "../controller/CustomerController.php";
+require_once __DIR__ . "/../controllers/CustomerController.php";
 
 // Get all customers via the controller.
 // A view file (like view/customers.php) calls this function to get the

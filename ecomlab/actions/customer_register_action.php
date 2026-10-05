@@ -5,7 +5,7 @@
 // Its job is: read the incoming request, hand the data to the controller,
 // and send a response back. It should not contain any SQL itself - that
 // belongs in the model (classes/CustomerClass.php).
-require_once "../controller/CustomerController.php";
+require_once __DIR__ . "/../controllers/CustomerController.php";
 
 // Tell the browser the response body will be JSON, not HTML
 header("Content-Type: application/json");

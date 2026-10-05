@@ -1,7 +1,7 @@
 <?php
 
 // Bring in the Database class so Customer can extend it
-require_once "../core/db_class.php";
+require_once __DIR__ . "/../core/db_class.php";
 
 // This is the "model" layer for the customer table. It only knows about
 // the `customer` table and the SQL needed to read/write it - it has no

@@ -19,6 +19,10 @@
 		<?php if (isset($_SESSION['customer_id'])): ?>
 		Welcome <?= htmlspecialchars($_SESSION['customer_name']) ?> |
 		<a href="logout.php">Logout</a>
+		<?php if (is_admin()): ?>
+			| <a href="view/admin/brand.php">Brands</a>
+			| <a href="view/admin/category.php">Categories</a>
+		<?php endif; ?>
 		<?php else: ?>
 			<a href="view/register.php">Register</a> |
 			<a href="view/login.php">Login</a>
