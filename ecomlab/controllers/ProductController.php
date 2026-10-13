@@ -45,4 +45,22 @@ class ProductController
     { 
         return $this->product->updateCategory($id, $n); 
     }
+
+
+    public function addProduct($cat, $brand, $title, $price, $desc, $image, $keywords)
+    {
+        return $this->product->addProduct($cat, $brand, $title, $price, $desc, $image, $keywords);
+    }
+
+    public function updateProduct($id, $cat, $brand, $title, $price, $desc, $image, $keywords)
+    {
+        return $this->product->updateProduct($id, $cat, $brand, $title, $price, $desc, $image, $keywords);
+    }
+
+    public function getProductById($id)      { return $this->product->getProductById($id); }
+    public function getAllProducts()         { return $this->product->getAllProducts(); }
+    public function getFeaturedProducts($n = 6) { return $this->product->getFeaturedProducts($n); }
+    public function getProductsByCategory($id)  { return $this->product->getProductsByCategory($id); }
+    public function getProductsByBrand($id)     { return $this->product->getProductsByBrand($id); }
+    public function searchProducts($q)          { return $this->product->searchProducts($q); }
 }
