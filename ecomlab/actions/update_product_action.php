@@ -60,7 +60,10 @@ if (!$controller->getCategoryById($cat) || !$controller->getBrandById($brand)) {
     fail_product("Please choose a valid category and brand.", $back);
 }
 
-
+// Keep the current image unless a new one is uploaded. The hidden
+// "existing_image" field is sent by the browser, so it can be tampered with:
+// we only accept it if it matches what is really stored in the database,
+// otherwise we use the database value.
 $filename = $current['product_image'] ?? null;
 if (isset($_POST['existing_image']) && $_POST['existing_image'] !== $filename) {
     $_POST['existing_image'] = $filename;   // ignore a tampered value
