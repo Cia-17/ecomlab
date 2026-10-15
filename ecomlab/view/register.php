@@ -1,77 +1,79 @@
-<!--
-	This is the "view" for registering a new customer.
-	Flow: user fills this form -> clicks Register -> js/customer.js
-	validates it and sends it to actions/customer_register_action.php
-	-> which calls the controller -> which calls the model -> which
-	inserts the row into the database.
--->
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="../css/style.css">
-	<title>Register Customer</title>
-</head>
-<body>
-	<h1>Customer Registration</h1>
+<?php
+require_once __DIR__ . "/../core/core.php";
 
-	<!-- Simple navigation so you can move between the pages of the app -->
-	<nav>
-		<a href="../index.php">Home</a> |
-		<a href="customers.php">View All Customers</a>
-	</nav>
+$old = pull_old();     // values typed before a server-side error
+$countries = [
+    'Ghana', 'Nigeria', 'Kenya', 'South Africa', 'Togo', 'Ivory Coast', 'Senegal', 'Cameroon',
+    'Ethiopia', 'Egypt', 'Morocco', 'Tanzania', 'Uganda', 'Rwanda', 'Zambia', 'Zimbabwe',
+    'United States', 'Canada', 'United Kingdom', 'Ireland', 'France', 'Germany', 'Netherlands',
+    'Spain', 'Italy', 'Portugal', 'India', 'China', 'Japan', 'South Korea', 'Singapore',
+    'United Arab Emirates', 'Saudi Arabia', 'Brazil', 'Mexico', 'Australia', 'New Zealand', 'Other',
+];
 
-	<!--
-		Each input's "name" attribute matches a column in the `customer`
-		table (see classes/CustomerClass.php) and is what PHP reads via
-		$_POST in actions/customer_register_action.php. The "id" attribute
-		is what js/customer.js uses to read the value in the browser.
-	-->
-	<form id="registerForm">
-		<div>
-			<label>Name</label>
-			<input type="text" name="customer_name" id="customer_name">
-		</div>
-		<div>
-			<label>Email</label>
-			<input type="text" name="customer_email" id="customer_email">
-		</div>
-		<div>
-			<label>Password</label>
-			<input type="password" name="customer_pass" id="customer_pass">
-		</div>
-		<div>
-			<label>Country</label>
-			<input type="text" name="customer_country" id="customer_country">
-		</div>
-		<div>
-			<label>City</label>
-			<input type="text" name="customer_city" id="customer_city">
-		</div>
-		<div>
-			<label>Contact</label>
-			<input type="text" name="customer_contact" id="customer_contact">
-		</div>
-		<div>
-			<label>Image (optional)</label>
-			<input type="text" name="customer_image" id="customer_image">
-		</div>
-		<div>
-			<!--
-				type="button" (not "submit") stops the browser from
-				trying to reload the page. Instead, clicking it calls
-				the registerCustomer() function defined in js/customer.js.
-			-->
-			<button type="button" onclick="registerCustomer()">Register</button>
-		</div>
-	</form> <br>
+$page_title   = "Register";
+$page_scripts = ['validate.js'];
+require __DIR__ . "/layout/header.php";
+?>
+<main class="container auth-wrap">
+    <div class="card auth-card auth-card-wide">
+        <h1>Create your account</h1>
+        <?php require __DIR__ . "/layout/flash.php"; ?>
 
+        <form id="register-form" action="<?= e(base_url()) ?>/actions/customer_register_action.php"
+              method="POST" enctype="multipart/form-data" novalidate>
+            <div class="form-grid">
+                <div class="field span-2">
+                    <label for="customer_name">Full name</label>
+                    <input type="text" id="customer_name" name="customer_name" maxlength="100" autocomplete="name"
+                           value="<?= e($old['name'] ?? '') ?>">
+                    <span class="field-error"></span>
+                </div>
+                <div class="field span-2">
+                    <label for="customer_email">Email</label>
+                    <input type="email" id="customer_email" name="customer_email" maxlength="50" autocomplete="email"
+                           value="<?= e($old['email'] ?? '') ?>">
+                    <span class="field-error"></span>
+                </div>
+                <div class="field span-2">
+                    <label for="customer_pass">Password</label>
+                    <input type="password" id="customer_pass" name="customer_pass" autocomplete="new-password">
+                    <span class="hint">At least 8 characters with an uppercase letter, a lowercase letter, a number and a special character.</span>
+                    <span class="field-error"></span>
+                </div>
+                <div class="field">
+                    <label for="customer_country">Country</label>
+                    <select id="customer_country" name="customer_country">
+                        <option value="">Select a country</option>
+                        <?php foreach ($countries as $c): ?>
+                            <option value="<?= e($c) ?>"<?= (($old['country'] ?? '') === $c) ? ' selected' : '' ?>><?= e($c) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <span class="field-error"></span>
+                </div>
+                <div class="field">
+                    <label for="customer_city">City</label>
+                    <input type="text" id="customer_city" name="customer_city" maxlength="30"
+                           value="<?= e($old['city'] ?? '') ?>">
+                    <span class="field-error"></span>
+                </div>
+                <div class="field span-2">
+                    <label for="customer_contact">Contact number</label>
+                    <input type="text" id="customer_contact" name="customer_contact" maxlength="15" autocomplete="tel"
+                           value="<?= e($old['contact'] ?? '') ?>">
+                    <span class="field-error"></span>
+                </div>
+                <div class="field span-2">
+                    <label for="customer_image">Profile image (optional)</label>
+                    <input type="file" id="customer_image" name="customer_image"
+                           accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp">
+                    <span class="hint">JPG, PNG, GIF or WEBP, up to 2 MB.</span>
+                    <span class="field-error"></span>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Create account</button>
+        </form>
 
-	<!-- Validation/success/error messages get written into here by customer.js -->
-	<p id="formMessage"></p>
-
-	<!-- Loads the shared JavaScript file that contains registerCustomer() -->
-	<script src="../js/customer.js"></script>
-</body>
-</html>
+        <p class="auth-switch">Already registered? <a href="<?= e(base_url()) ?>/view/login.php">Log in</a></p>
+    </div>
+</main>
+<?php require __DIR__ . "/layout/footer.php"; ?>

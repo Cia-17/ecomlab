@@ -38,6 +38,34 @@ class CustomerController
     }
 
 
+    // Task 3: register a new customer. $data keys: name, email, password,
+    // country, city, contact, image. Returns ['success' => true] or
+    // ['success' => false, 'error' => '...'].
+    public function register($data)
+    {
+        if ($this->customer->emailExists($data['email'])) {
+            return ['success' => false, 'error' => 'Email already registered'];
+        }
+
+        // Hash BEFORE it reaches the model - plain text is never stored.
+        $hash = password_hash($data['password'], PASSWORD_BCRYPT);
+
+        try {
+            $ok = $this->customer->insertCustomer(
+                $data['name'], $data['email'], $hash,
+                $data['country'], $data['city'], $data['contact'],
+                $data['image'], 2   // 2 = customer, 1 = admin
+            );
+        } catch (PDOException $e) {
+            if (function_exists('log_error')) log_error($e->getMessage());
+            return ['success' => false, 'error' => 'Registration failed. Please try again.'];
+        }
+
+        return $ok
+            ? ['success' => true]
+            : ['success' => false, 'error' => 'Registration failed. Please try again.'];
+    }
+
     public function login($email, $pass)
     {
     return $this->customer->login($email, $pass);

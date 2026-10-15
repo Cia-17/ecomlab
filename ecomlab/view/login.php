@@ -1,35 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/style.css">
-	<title>login</title>
-</head>
-<body>
-	<h1>Customer Login</h1>
+<?php
+require_once __DIR__ . "/../core/core.php";
 
-	<nav>
-		<a href="../index.php">Home</a> |
-		<a href="register.php">Register</a>
-	</nav>
+$page_title   = "Login";
+$page_scripts = ['validate.js'];
+require __DIR__ . "/layout/header.php";
+?>
+<main class="container auth-wrap">
+    <div class="card auth-card">
+        <h1>Log in</h1>
+        <?php require __DIR__ . "/layout/flash.php"; ?>
 
-	<form id="loginForm">
-		<div>
-			<label>Email</label>
-			<input type="text" name="customer_email" id="customer_email">
-		</div>
-		<div>
-			<label>Password</label>
-			<input type="password" name="customer_pass" id="customer_pass">
-		</div>
-		<div>
-			<button type="button" onclick="loginCustomer()">Login</button>
-		</div>
-	</form>
+        <form id="login-form" action="<?= e(base_url()) ?>/actions/login_action.php" method="POST" novalidate>
+            <div class="field">
+                <label for="customer_email">Email</label>
+                <input type="email" id="customer_email" name="customer_email" maxlength="50" autocomplete="email">
+                <span class="field-error"></span>
+            </div>
+            <div class="field">
+                <label for="customer_pass">Password</label>
+                <input type="password" id="customer_pass" name="customer_pass" autocomplete="current-password">
+                <span class="field-error"></span>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Log in</button>
+        </form>
 
-	<p id="formMessage"></p>
-
-	<script src="../js/customer.js"></script>
-</body>
-</html>
+        <p class="auth-switch">New here? <a href="<?= e(base_url()) ?>/view/register.php">Create an account</a></p>
+    </div>
+</main>
+<?php require __DIR__ . "/layout/footer.php"; ?>

@@ -64,6 +64,13 @@ class Customer extends Database
 
     
 
+    // Task 3: returns true if this email is already registered.
+    public function emailExists($email)
+    {
+        $sql = "SELECT customer_email FROM customer WHERE customer_email = ?";
+        return $this->fetchOne($sql, [$email]) !== false;
+    }
+
     public function getCustomerByEmail($email)
     {
         $sql = "SELECT * FROM customer WHERE customer_email = ?";

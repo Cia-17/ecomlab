@@ -1,56 +1,94 @@
 <?php
 require_once __DIR__ . "/../core/core.php";
 require_once __DIR__ . "/../controllers/ProductController.php";
+require_once __DIR__ . "/../functions/upload_functions.php";
+
 require_admin();
 
+$list = base_url() . "/view/admin/product.php";
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect("../view/admin/product.php");
+    redirect($list);
+}
+
+if (empty($_POST) && empty($_FILES) && (int)($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+    $_SESSION['error'] = "The upload was too large. Images must be smaller than 2 MB.";
+    redirect($list);
 }
 
 $id       = (int)($_POST['product_id'] ?? 0);
 $cat      = (int)($_POST['product_cat'] ?? 0);
 $brand    = (int)($_POST['product_brand'] ?? 0);
-$title    = trim($_POST['product_title'] ?? '');
-$price    = (float)($_POST['product_price'] ?? 0);
-$desc     = trim($_POST['product_desc'] ?? '');
-$keywords = trim($_POST['product_keywords'] ?? '');
-$existing = $_POST['existing_image'] ?? null;
+$title    = clean_input($_POST['product_title'] ?? '');
+$priceRaw = trim($_POST['product_price'] ?? '');
+$desc     = clean_input($_POST['product_desc'] ?? '');
+$keywords = clean_input($_POST['product_keywords'] ?? '');
 
-if ($id <= 0 || $cat <= 0 || $brand <= 0 || $title === '' || $price <= 0) {
-    $_SESSION['error'] = "All required fields must be filled, and price must be greater than zero.";
-    redirect("../view/admin/product.php?edit_id=" . $id);
+$back = $list . "?edit_id=" . $id;
+
+function fail_product($message, $back)
+{
+    $_SESSION['error'] = $message;
+    redirect($back);
 }
 
-$filename = $existing;
+if ($id <= 0 || $cat <= 0 || $brand <= 0 || $title === '' || $priceRaw === '') {
+    fail_product("Title, price, category and brand are required.", $back);
+}
+if (!is_numeric($priceRaw) || (float)$priceRaw <= 0 || (float)$priceRaw > 9999999) {
+    fail_product("Price must be a number greater than zero.", $back);
+}
+$price = round((float)$priceRaw, 2);
 
-if (!empty($_FILES['product_image']['name'])) {
-    $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-
-    if (!in_array($_FILES['product_image']['type'], $allowed)) {
-        $_SESSION['error'] = "Only JPG, PNG, GIF and WEBP images are allowed.";
-        redirect("../view/admin/product.php?edit_id=" . $id);
-    }
-
-    if ($_FILES['product_image']['size'] > 2 * 1024 * 1024) {
-        $_SESSION['error'] = "Image must be smaller than 2 MB.";
-        redirect("../view/admin/product.php?edit_id=" . $id);
-    }
-
-    $ext = pathinfo($_FILES['product_image']['name'], PATHINFO_EXTENSION);
-    $filename = uniqid() . '_' . time() . '.' . $ext;
-
-    $target = __DIR__ . "/../images/products/" . $filename;
-
-    if (!move_uploaded_file($_FILES['product_image']['tmp_name'], $target)) {
-        $_SESSION['error'] = "Could not save the uploaded image. Check the images/products/ folder permissions.";
-        redirect("../view/admin/product.php?edit_id=" . $id);
-    }
+if (text_length($title) < 2 || text_length($title) > 200) {
+    fail_product("Title must be between 2 and 200 characters.", $back);
+}
+if (text_length($desc) > 500) {
+    fail_product("Description must be 500 characters or fewer.", $back);
+}
+if (text_length($keywords) > 100) {
+    fail_product("Keywords must be 100 characters or fewer.", $back);
 }
 
 $controller = new ProductController();
-if ($controller->updateProduct($id, $cat, $brand, $title, $price, $desc, $filename, $keywords)) {
-    $_SESSION['success'] = "Product updated.";
-} else {
-    $_SESSION['error'] = "Could not update product.";
+
+$current = $controller->getProductById($id);
+if (!$current) {
+    fail_product("That product no longer exists.", $list);
 }
-redirect("../view/admin/product.php");
+if (!$controller->getCategoryById($cat) || !$controller->getBrandById($brand)) {
+    fail_product("Please choose a valid category and brand.", $back);
+}
+
+
+$filename = $current['product_image'] ?? null;
+if (isset($_POST['existing_image']) && $_POST['existing_image'] !== $filename) {
+    $_POST['existing_image'] = $filename;   // ignore a tampered value
+}
+
+$upload = save_uploaded_image($_FILES['product_image'] ?? null, __DIR__ . "/../images/products");
+if ($upload['status'] === 'error') {
+    fail_product($upload['error'], $back);
+}
+$newFile = null;
+if ($upload['status'] === 'ok') {
+    $newFile  = $upload['filename'];
+    $filename = $newFile;
+}
+
+try {
+    $saved = $controller->updateProduct($id, $cat, $brand, $title, $price, $desc, $filename, $keywords);
+} catch (Throwable $e) {
+    log_error($e->getMessage());
+    $saved = false;
+}
+
+if ($saved) {
+    $_SESSION['success'] = "Product updated.";
+    redirect($list);
+}
+
+if ($newFile !== null) {
+    @unlink(__DIR__ . "/../images/products/" . $newFile);
+}
+fail_product("Could not update product.", $back);

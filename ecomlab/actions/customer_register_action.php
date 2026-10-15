@@ -1,63 +1,79 @@
 <?php
-
-// This is an "action" file - the endpoint the browser's JavaScript sends
-// the registration form to (see js/customer.js -> fetch("../actions/customer_register_action.php")).
-// Its job is: read the incoming request, hand the data to the controller,
-// and send a response back. It should not contain any SQL itself - that
-// belongs in the model (classes/CustomerClass.php).
+require_once __DIR__ . "/../core/core.php";
 require_once __DIR__ . "/../controllers/CustomerController.php";
+require_once __DIR__ . "/../functions/upload_functions.php";
 
-// Tell the browser the response body will be JSON, not HTML
-header("Content-Type: application/json");
+$back = base_url() . "/view/register.php";
 
-// Read each form field from $_POST. The `?? ''` part means "if this key
-// doesn't exist, use an empty string instead of causing a PHP warning".
-$name    = $_POST['customer_name'] ?? '';
-$email   = $_POST['customer_email'] ?? '';
-$pass    = $_POST['customer_pass'] ?? '';
-$country = $_POST['customer_country'] ?? '';
-$city    = $_POST['customer_city'] ?? '';
-$contact = $_POST['customer_contact'] ?? '';
-$image   = $_POST['customer_image'] ?? null; // optional field, can be empty
-
-// user_role isn't collected from the form - every new sign-up is a
-// regular customer (role 2), so it's hardcoded here.
-$role    = 2;
-
-// Server-side validation. The JavaScript in js/customer.js already checks
-// this before sending the request, but a server-side check is still
-// required because JavaScript can be bypassed (disabled, or the request
-// sent directly without using the form).
-if ($name === '' || $email === '' || $pass === '' || $country === '' || $city === '' || $contact === '') {
-    echo json_encode(["success" => false, "message" => "All required fields must be filled."]);
-    exit;
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    redirect($back);
 }
 
+// Sanitise (never trim/strip the password - it must stay exactly as typed)
+$name    = clean_input($_POST['customer_name'] ?? '');
+$email   = clean_input($_POST['customer_email'] ?? '');
+$pass    = $_POST['customer_pass'] ?? '';
+$country = clean_input($_POST['customer_country'] ?? '');
+$city    = clean_input($_POST['customer_city'] ?? '');
+$contact = clean_input($_POST['customer_contact'] ?? '');
+
+// Remember what was typed so the form can be re-filled after an error
+$_SESSION['old'] = [
+    'name' => $name, 'email' => $email, 'country' => $country,
+    'city' => $city, 'contact' => $contact,
+];
+
+function fail_register($message, $back)
+{
+    $_SESSION['error'] = $message;
+    redirect($back);
+}
+
+// Server-side validation (lengths match the customer table columns)
+if ($name === '' || $email === '' || $pass === '' || $country === '' || $city === '' || $contact === '') {
+    fail_register("All required fields must be filled.", $back);
+}
+if (text_length($name) < 2 || text_length($name) > 100) {
+    fail_register("Name must be between 2 and 100 characters.", $back);
+}
+if (!filter_var($email, FILTER_VALIDATE_EMAIL) || text_length($email) > 50) {
+    fail_register("Please enter a valid email address (maximum 50 characters).", $back);
+}
 $passRegex = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_\-]).{8,}$/';
 if (!preg_match($passRegex, $pass)) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character."
-    ]);
-    exit;
+    fail_register("Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character.", $back);
+}
+if (text_length($country) > 30 || text_length($city) < 2 || text_length($city) > 30) {
+    fail_register("Country and city must be 30 characters or fewer.", $back);
+}
+if (!preg_match('/^[0-9+\-\s]{7,15}$/', $contact)) {
+    fail_register("Contact number must be 7 to 15 digits (you may use +, - and spaces).", $back);
 }
 
-// Never store plain-text passwords. password_hash() turns the password
-// into a secure, one-way hash before it ever reaches the database.
-$hashedPass = password_hash($pass, PASSWORD_DEFAULT);
+// Optional profile image - validated on the server
+$image = null;
+$upload = save_uploaded_image($_FILES['customer_image'] ?? null, __DIR__ . "/../images/customers");
+if ($upload['status'] === 'error') {
+    fail_register($upload['error'], $back);
+}
+if ($upload['status'] === 'ok') {
+    $image = $upload['filename'];
+}
 
-// Create the controller (this also connects to the database, since
-// CustomerController creates a Customer, which extends Database).
 $controller = new CustomerController();
+$result = $controller->register([
+    'name' => $name, 'email' => $email, 'password' => $pass,
+    'country' => $country, 'city' => $city, 'contact' => $contact,
+    'image' => $image,
+]);
 
-// Hand the data to the controller, which hands it to the model, which
-// runs the INSERT query.
-$result = $controller->insert($name, $email, $hashedPass, $country, $city, $contact, $image, $role);
-
-// Send a JSON response back to the JavaScript that called this file,
-// so it can show a success or failure message to the user.
-if ($result) {
-    echo json_encode(["success" => true, "message" => "Registration successful."]);
-} else {
-    echo json_encode(["success" => false, "message" => "Registration failed."]);
+if (!$result['success']) {
+    if ($image !== null) {                       // don't leave an orphan file behind
+        @unlink(__DIR__ . "/../images/customers/" . $image);
+    }
+    fail_register($result['error'], $back);
 }
+
+unset($_SESSION['old']);
+$_SESSION['success'] = "Registration successful. Please log in.";
+redirect(base_url() . "/view/login.php");

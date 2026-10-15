@@ -49,8 +49,15 @@ class Database
         } catch (PDOException $e) {
 
             // If the connection fails (wrong credentials, MySQL not
-            // running, etc.) stop the script and show why.
-            die("Database connection failed: " . $e->getMessage());
+            // running, etc.) write the real reason to the error log and
+            // show the visitor a generic message. Never print $e->getMessage()
+            // on screen - it can reveal the host name, user name, etc.
+            if (function_exists('log_error')) {
+                log_error("Database connection failed: " . $e->getMessage());
+            } else {
+                error_log("Database connection failed: " . $e->getMessage());
+            }
+            die("Connection failed.");
 
         }
     }
