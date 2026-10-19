@@ -43,7 +43,10 @@ require __DIR__ . "/layout/header.php";
                 <h2>Description</h2>
                 <p><?= nl2br(e($product['product_desc'] ?? '')) ?></p>
 
-                <a class="btn btn-outline" href="<?= e(base_url()) ?>/index.php">Back to products</a>
+                <div class="form-actions">
+                    <a class="btn btn-primary" href="<?= e(base_url()) ?>/actions/add_to_cart_action.php?add_cart=<?= (int)$product['product_id'] ?>">Add to Cart</a>
+                    <a class="btn btn-outline" href="<?= e(base_url()) ?>/index.php">Back to products</a>
+                </div>
             </div>
         </div>
     </main>

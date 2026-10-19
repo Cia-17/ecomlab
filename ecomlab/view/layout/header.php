@@ -3,7 +3,22 @@
 // Included at the top of every view. Set $page_title before including it.
 // HTML + minimal PHP only (no SQL).
 require_once __DIR__ . "/../../core/core.php";
+require_once __DIR__ . "/../../controllers/CartController.php";
 $base  = base_url();
+
+// Cart summary for the bar under the header (not shown on admin pages)
+$showCartBar = ($sidebar_mode ?? '') !== 'admin';
+$cartCount = 0;
+$cartTotal = 0;
+if ($showCartBar) {
+    try {
+        $headerCart = new CartController();
+        $cartCount  = $headerCart->getCartCount(get_ip());
+        $cartTotal  = $headerCart->getCartTotal(get_ip());
+    } catch (Throwable $e) {
+        log_error("Cart summary failed: " . $e->getMessage());
+    }
+}
 $title = isset($page_title) ? $page_title . " | Ecom Store" : "Ecom Store";
 ?>
 <!DOCTYPE html>
@@ -42,3 +57,14 @@ $title = isset($page_title) ? $page_title . " | Ecom Store" : "Ecom Store";
         </nav>
     </div>
 </header>
+
+<?php if ($showCartBar): ?>
+<div class="cart-bar">
+    <div class="container cart-bar-inner">
+        <span><strong>Shopping Cart</strong></span>
+        <span>Total Items: <strong><?= (int)$cartCount ?></strong></span>
+        <span>Total Price: <strong>GHS <?= number_format($cartTotal, 2) ?></strong></span>
+        <a href="<?= e($base) ?>/view/cart.php">Go to Cart</a>
+    </div>
+</div>
+<?php endif; ?>

@@ -57,6 +57,29 @@ function redirect($url)
     exit;
 }
 
+// Where to send the visitor "back to" after an action (e.g. Add to Cart).
+// Uses the page they came from, but ONLY if it is on this same site - the
+// Referer header is sent by the browser and can be anything, so an outside
+// address would let someone bounce visitors to another website.
+function safe_back($default)
+{
+    $ref = $_SERVER['HTTP_REFERER'] ?? '';
+    if ($ref === '') {
+        return $default;
+    }
+
+    $host = parse_url($ref, PHP_URL_HOST);
+    $port = parse_url($ref, PHP_URL_PORT);
+    $path = (string)parse_url($ref, PHP_URL_PATH);
+    $here = $_SERVER['HTTP_HOST'] ?? '';
+
+    if ($host && strcasecmp($host . ($port ? ':' . $port : ''), $here) === 0
+        && strpos($path, '/actions/') === false) {
+        return $ref;
+    }
+    return $default;
+}
+
 
 /* ------------------------------------------------------------------
    Request / input helpers

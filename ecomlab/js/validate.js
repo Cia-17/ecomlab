@@ -59,8 +59,8 @@
             clearAll(form);
             var firstBad = null;
 
-            function fail(name, message) {
-                var input = form.elements[name];
+            function fail(target, message) {
+                var input = (typeof target === "string") ? form.elements[target] : target;
                 showError(input, message);
                 if (!firstBad) firstBad = input;
             }
@@ -85,6 +85,11 @@
         // Remove an error as soon as the user edits that field
         form.addEventListener("input",  function (e) { clearError(e.target); });
         form.addEventListener("change", function (e) { clearError(e.target); });
+        // Inputs linked with form="..." sit outside the <form> tag, so their
+        // events do not reach the form: listen on each field as well.
+        Array.prototype.forEach.call(form.elements, function (el) {
+            el.addEventListener("input", function () { clearError(el); });
+        });
     }
 
     // Restore buttons if the user comes back with the browser's Back button
@@ -135,6 +140,32 @@
         var n = f.elements.cat_name.value.trim();
         if (n.length < 2 || n.length > 100) fail("cat_name", "Category name must be 2 to 100 characters.");
     });
+
+    // Cart: quantity form (Task 12). Every quantity must be a whole number 1-99.
+    attach("update-form", function (f, fail) {
+        Array.prototype.forEach.call(f.elements, function (el) {
+            if (el.name === "qty[]" && !/^[1-9][0-9]?$/.test(el.value.trim())) {
+                fail(el, "Enter a whole number from 1 to 99.");
+            }
+        });
+    });
+
+    // Cart: remove form - at least one item must be ticked
+    var removeForm = document.getElementById("remove-form");
+    if (removeForm) {
+        removeForm.addEventListener("submit", function (e) {
+            var box = document.getElementById("cart-js-message");
+            if (document.querySelectorAll('input[name="remove[]"]:checked').length === 0) {
+                e.preventDefault();
+                if (box) {
+                    box.textContent = "Tick the items you want to remove first.";
+                    box.hidden = false;
+                }
+            } else if (box) {
+                box.hidden = true;
+            }
+        });
+    }
 
     attach("product-form", function (f, fail) {
         var title = f.elements.product_title.value.trim();

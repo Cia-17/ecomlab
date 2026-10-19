@@ -222,7 +222,8 @@ h3 { font-size: 15px; }
 .product-body h3 { margin-bottom: 2px; }
 .product-brand { margin: 0 0 8px; font-size: 13px; color: var(--muted); }
 .product-price { margin: 0 0 14px; font-size: 16px; font-weight: 700; }
-.product-body .btn { margin-top: auto; }
+.product-actions { display: flex; gap: 8px; margin-top: auto; }
+.product-actions .btn { flex: 1; padding-left: 6px; padding-right: 6px; white-space: nowrap; }
 
 .empty-state { padding: 32px; text-align: center; color: var(--muted); background: var(--surface); border: 1px dashed #c5cad3; border-radius: var(--radius); }
 
@@ -301,6 +302,23 @@ tbody tr:last-child td { border-bottom: none; }
 .thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 4px; border: 1px solid var(--line); }
 .thumb-empty { display: block; background: #eceef2; }
 
+/* ---------- Cart ---------- */
+
+.cart-bar { background: var(--surface); border-bottom: 1px solid var(--line); font-size: 14px; }
+.cart-bar-inner { display: flex; flex-wrap: wrap; align-items: center; padding-top: 9px; padding-bottom: 9px; }
+.cart-bar-inner > * { padding: 0 14px; border-left: 1px solid var(--line); }
+.cart-bar-inner > *:first-child { padding-left: 0; border-left: none; }
+
+.cart-table .field { margin-bottom: 0; }
+.cart-product { display: flex; align-items: center; gap: 12px; min-width: 180px; }
+.cart-product .thumb { width: 52px; height: 52px; flex: none; }
+.qty-input { width: 72px !important; text-align: center; }
+.cart-table tfoot td { border-top: 2px solid var(--line); border-bottom: none; font-weight: 700; }
+.text-right { text-align: right; }
+
+.cart-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-top: 18px; }
+.cart-actions > div { display: flex; flex-wrap: wrap; gap: 10px; }
+
 /* ---------- Footer ---------- */
 
 .site-footer { margin-top: auto; background: var(--surface); border-top: 1px solid var(--line); padding: 16px 0; color: var(--muted); font-size: 13px; }
@@ -320,4 +338,6 @@ tbody tr:last-child td { border-bottom: none; }
     .form-grid { grid-template-columns: 1fr; }
     .span-2 { grid-column: auto; }
     .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .product-actions { flex-direction: column; }
+    .cart-bar-inner > * { border-left: none; padding: 0 16px 0 0; }
 }

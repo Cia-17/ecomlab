@@ -21,7 +21,10 @@ if (empty($products)): ?>
                         <p class="product-brand"><?= e($p['brand_name']) ?></p>
                     <?php endif; ?>
                     <p class="product-price">GHS <?= number_format((float)$p['product_price'], 2) ?></p>
-                    <a class="btn btn-primary btn-block" href="<?= e($base) ?>/view/single_product.php?pro_id=<?= (int)$p['product_id'] ?>">Details</a>
+                    <div class="product-actions">
+                        <a class="btn btn-outline btn-sm" href="<?= e($base) ?>/view/single_product.php?pro_id=<?= (int)$p['product_id'] ?>">Details</a>
+                        <a class="btn btn-primary btn-sm" href="<?= e($base) ?>/actions/add_to_cart_action.php?add_cart=<?= (int)$p['product_id'] ?>">Add to Cart</a>
+                    </div>
                 </div>
             </article>
         <?php endforeach; ?>
