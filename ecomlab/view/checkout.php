@@ -1,6 +1,6 @@
 <?php
 // Checkout: review the order before paying. Customers must be logged in.
-// (The payment step itself is added in Task 13.)
+// The Proceed to Payment button leads to view/payment.php (Task 13).
 require_once __DIR__ . "/../core/core.php";
 require_login();
 require_once __DIR__ . "/../controllers/CartController.php";
@@ -49,9 +49,10 @@ require __DIR__ . "/layout/header.php";
                     </tfoot>
                 </table>
             </div>
-            <p class="muted">Payment is not available yet.</p>
+            
             <div class="cart-actions">
                 <div><a class="btn btn-outline" href="<?= e($base) ?>/view/cart.php">Back to cart</a></div>
+                <div><a class="btn btn-primary" href="<?= e($base) ?>/view/payment.php">Proceed to Payment</a></div>
             </div>
         </div>
     </main>
